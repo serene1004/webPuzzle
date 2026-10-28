@@ -1,0 +1,16 @@
+/node_modules/
+/dist/
+/.pnpm-store/
+/.playwright-cli/
+/coverage/
+*.tsbuildinfo
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
