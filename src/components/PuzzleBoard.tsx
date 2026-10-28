@@ -119,7 +119,11 @@ export default function PuzzleBoard({
     ? Math.max(600, Math.sqrt(game.count) * cellSize * 0.9)
     : Math.max(440, Math.sqrt(game.count) * cellSize * 0.65);
   const worldWidth = puzzleWidth + margin * 2;
-  const worldHeight = puzzleHeight + margin * 2;
+  const pieceAreaHeight = puzzleHeight + margin * 2;
+  const referenceBounds = fitImage(game.aspect, 1, puzzleWidth, puzzleHeight);
+  const referenceX = (worldWidth - referenceBounds.width) / 2;
+  const referenceY = pieceAreaHeight + cellSize * 2;
+  const worldHeight = referenceY + referenceBounds.height + margin * 0.25;
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -209,6 +213,17 @@ export default function PuzzleBoard({
     ctx.lineWidth = 2;
     ctx.strokeRect(margin, margin, puzzleWidth, puzzleHeight);
 
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight,
+      referenceX,
+      referenceY,
+      referenceBounds.width,
+      referenceBounds.height,
+    );
     pieces.forEach((piece) => {
       drawPiecePath(ctx, piece.x, piece.y, cellSize, cellSize, edges[piece.id]);
       ctx.save();
@@ -240,7 +255,10 @@ export default function PuzzleBoard({
       ctx.lineWidth = 0.9 / camera.scale;
       ctx.stroke();
     });
-  }, [camera, cellSize, edges, margin, pieces, puzzleHeight, puzzleWidth]);
+  }, [
+    camera, cellSize, edges, margin, pieces, puzzleHeight, puzzleWidth,
+    referenceBounds.height, referenceBounds.width, referenceX, referenceY,
+  ]);
   drawRef.current = draw;
 
   useEffect(() => {
