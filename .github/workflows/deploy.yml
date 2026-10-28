@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build site
-        run: pnpm build -- --mode github-pages
+        run: pnpm build
       - name: Add SPA route fallback
         run: cp dist/index.html dist/404.html
       - name: Upload Pages artifact
