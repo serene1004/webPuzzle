@@ -31,7 +31,7 @@ In the repository settings, set **Pages → Build and deployment → Source** to
 
 1. Choose an image and a difficulty on the home screen.
 2. Drag pieces to connect matching edges. The number of pieces is approximate because the grid follows the image's aspect ratio.
-3. Drag empty canvas space to pan. Use the zoom controls or mouse wheel to zoom.
+3. Drag empty canvas space to pan. The full-size reference image sits below the pieces and zooms with the canvas.
 4. Right-click a connected group and choose **Separate puzzle group** to detach the clicked piece.
 5. Finish the full puzzle to see the elapsed time.
 
@@ -60,4 +60,4 @@ tests/
 
 - Images are resized in the browser and kept in `sessionStorage`; they are not uploaded to a server. Progress survives a page refresh in the same tab, but closing the tab ends that session.
 - The Inter font is loaded from Google Fonts. A system sans-serif font is used if it is unavailable.
-- The app uses client-side routes (`/`, `/game`, and `/result`). Production hosting must serve `index.html` as the fallback for those paths.
+- The app uses client-side routes (`/`, `/game`, and `/result`). The Pages workflow copies `index.html` to `404.html` so direct visits and refreshes work.
