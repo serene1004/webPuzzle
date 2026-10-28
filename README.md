@@ -23,6 +23,10 @@ pnpm build
 pnpm preview
 ```
 
+## Deploy to GitHub Pages
+
+In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**.
+
 ## How to play
 
 1. Choose an image and a difficulty on the home screen.
