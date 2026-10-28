@@ -22,6 +22,8 @@ export function readGame(): SavedGame | null {
       || !Number.isFinite(game.aspect)
       || game.aspect <= 0
       || !Number.isFinite(game.startedAt)
+      || (game.completedAt !== undefined
+        && (!Number.isFinite(game.completedAt) || game.completedAt < game.startedAt))
       || !Array.isArray(game.pieces)
       || game.pieces.length !== game.count
     ) return null;

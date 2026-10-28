@@ -36,11 +36,14 @@ export default function App() {
   useEffect(() => {
     if (!saved || !['/game', '/result'].includes(location.pathname)) return undefined;
 
-    const updateTimer = () => {
-      setElapsed(Math.max(0, Math.floor((Date.now() - saved.startedAt) / 1000)));
-    };
+    const updateTimer = () => setElapsed(Math.max(
+      0,
+      Math.floor(((saved.completedAt ?? Date.now()) - saved.startedAt) / 1000),
+    ));
 
     updateTimer();
+    if (saved.completedAt || location.pathname !== '/game') return undefined;
+
     const timerId = window.setInterval(updateTimer, 1000);
     return () => window.clearInterval(timerId);
   }, [location.pathname, saved]);
@@ -111,6 +114,7 @@ export default function App() {
   function updatePieces(pieces: Piece[]) {
     if (!saved) return;
     const nextGame = { ...saved, pieces };
+    if (isGameComplete(nextGame)) nextGame.completedAt = Date.now();
     setSaved(nextGame);
     try {
       sessionStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(nextGame));

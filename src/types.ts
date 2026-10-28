@@ -9,6 +9,7 @@ export type SavedGame = {
   difficulty?: Difficulty
   pieces: Piece[]
   startedAt: number
+  completedAt?: number
   geometryVersion?: number
 }
 
