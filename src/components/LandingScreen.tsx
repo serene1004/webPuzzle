@@ -27,7 +27,7 @@ export default function LandingScreen({
 
   return (
     <section className="home-view">
-      <h1>Choose an image for your puzzle.</h1>
+      <h1>Turn a photo you love into a jigsaw puzzle.</h1>
       <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleFileChange} />
       <div className="landing-panel">
         <div className="photo-column">
