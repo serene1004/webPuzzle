@@ -1,0 +1,143 @@
+.game-view {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  padding: 0;
+}
+
+.board-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--color-page);
+  background-image: radial-gradient(ellipse at center, var(--color-table-sheen), transparent 100%);
+  touch-action: none;
+}
+
+.board-wrap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+
+.board-wrap canvas:active {
+  cursor: grabbing;
+}
+
+.board-wrap canvas.cursor-multi {
+  cursor: default;
+}
+
+.board-wrap canvas.cursor-area {
+  cursor: crosshair;
+}
+
+.canvas-controls {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--space-4);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.selection-count {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(var(--space-4) + 62px);
+  left: 50%;
+  padding: var(--space-2) var(--space-3);
+  transform: translateX(-50%);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-floating);
+  color: var(--color-muted);
+  box-shadow: 0 4px 12px var(--color-floating-shadow);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.canvas-controls > button,
+.canvas-control-group button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-floating);
+  color: var(--color-ink);
+  box-shadow: 0 4px 12px var(--color-floating-shadow);
+  pointer-events: auto;
+}
+
+.canvas-control-group {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 28px;
+  background: var(--color-floating);
+  box-shadow: 0 4px 12px var(--color-floating-shadow);
+  pointer-events: auto;
+}
+
+.canvas-timer-group {
+  min-width: 82px;
+  justify-content: center;
+}
+
+.canvas-control-group .canvas-timer {
+  min-width: 64px;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.zoom-control button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 18px;
+}
+
+.zoom-control .zoom-value {
+  width: 48px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.piece-context-menu {
+  position: fixed;
+  z-index: 8;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 8px 28px var(--color-shadow);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+

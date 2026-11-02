@@ -1,0 +1,173 @@
+@media (min-width: 641px) and (max-width: 1024px) {
+  .app-shell {
+    padding-inline: var(--space-6);
+  }
+
+  .home-view {
+    width: min(880px, 100%);
+    gap: clamp(var(--space-5), 4vw, var(--space-8));
+    padding-inline: var(--space-6);
+  }
+
+  .landing-panel .photo-column {
+    width: min(100%, 64vw, 840px);
+  }
+
+  .result-view {
+    width: min(440px, 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding-inline: var(--space-4);
+  }
+
+  .home-view {
+    justify-content: flex-start;
+    gap: var(--space-5);
+    padding: max(var(--space-8), env(safe-area-inset-top)) var(--space-3);
+  }
+
+  .home-view h1 {
+    font-size: clamp(22px, 6vw, 26px);
+    line-height: 1.35;
+  }
+
+  .landing-panel {
+    gap: var(--space-4);
+  }
+
+  .landing-panel .photo-column,
+  .landing-panel .difficulty-column {
+    width: 100%;
+  }
+
+  .landing-panel .upload-zone {
+    min-height: clamp(180px, 56vw, 220px);
+  }
+
+  .landing-panel .difficulty-column {
+    gap: var(--space-3);
+  }
+
+  .landing-panel .count-grid {
+    width: 100%;
+    gap: 2px;
+  }
+
+  .landing-panel .count-choice {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 48px;
+  }
+
+  .landing-panel .count-choice strong {
+    font-size: 12px;
+  }
+
+  .canvas-controls {
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    gap: var(--space-2);
+  }
+
+  .selection-count {
+    bottom: calc(max(var(--space-3), env(safe-area-inset-bottom)) + 62px);
+  }
+
+  .canvas-controls > button,
+  .canvas-control-group button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .canvas-control-group {
+    gap: var(--space-1);
+    padding: 0;
+  }
+
+  .zoom-control button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .canvas-control-group .canvas-timer {
+    min-width: 48px;
+    font-size: 11px;
+  }
+
+  .zoom-control .zoom-value {
+    width: 44px;
+    font-size: 10px;
+  }
+
+  .result-view {
+    width: 100%;
+    margin: var(--space-7) auto;
+  }
+
+  .result-view h1 {
+    font-size: 24px;
+  }
+
+  .result-time {
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    font-size: 12px;
+  }
+
+  .result-time strong {
+    font-size: 14px;
+  }
+
+  .result-actions {
+    width: 100%;
+    gap: var(--space-2);
+  }
+
+  .result-actions .secondary-button,
+  .result-actions .primary-button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    padding-inline: var(--space-2);
+    font-size: 12px;
+  }
+
+  .confirm-dialog {
+    max-height: calc(100dvh - var(--space-8));
+    overflow: auto;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .home-view {
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+  }
+
+  .home-view h1 {
+    font-size: 22px;
+  }
+
+  .landing-panel {
+    gap: var(--space-3);
+  }
+
+  .landing-panel .upload-zone {
+    min-height: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,122 @@
+.result-view {
+  width: min(500px, 100%);
+  margin: var(--space-10) auto;
+  text-align: center;
+}
+
+.result-photo {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  overflow: hidden;
+  margin: 0 auto var(--space-6);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px var(--color-floating-shadow);
+}
+
+.result-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: var(--color-surface);
+}
+
+.complete-stamp {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 20px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.result-view h1 {
+  margin: 0 0 var(--space-5);
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+
+.result-time {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: 0 auto var(--space-6);
+  padding: var(--space-3) var(--space-5);
+  border-radius: 8px;
+  background: var(--color-surface-soft);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.result-time strong {
+  color: var(--color-ink);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+
+.result-actions .primary-button {
+  min-width: 160px;
+  min-height: 48px;
+}
+
+.confirm-dialog {
+  width: min(420px, calc(100% - var(--space-8)));
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 24px 80px var(--color-shadow);
+}
+
+.confirm-dialog::backdrop {
+  background: var(--color-overlay);
+  backdrop-filter: blur(3px);
+}
+
+.confirm-dialog h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+
+.confirm-dialog p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.confirm-dialog-actions .secondary-button,
+.confirm-dialog-actions .primary-button {
+  min-width: 92px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  font-size: 12px;
+}
+

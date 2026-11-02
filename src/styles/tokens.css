@@ -1,0 +1,47 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  color: var(--color-ink);
+  background: var(--color-page);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  font-weight: 400;
+
+  --color-page: #1b1916;
+  --color-primary: #1b1916;
+  --color-surface: #25221e;
+  --color-surface-soft: #302c26;
+  --color-floating: #25221eed;
+  --color-border: #3d3831;
+  --color-border-strong: #49433a;
+  --color-ink: #e8e2d7;
+  --color-muted: #a79d8d;
+  --color-focus: #aea38f;
+  --color-accent: #a19680;
+  --color-accent-soft: #2c2822;
+  --color-upload-hover: #201d19;
+  --color-upload-hover-border: #3a352e;
+  --color-table-sheen: color-mix(in srgb, var(--color-page) 82%, #342c21);
+  --color-board: #26221d;
+  --color-wood: #6a5d49;
+  --color-wood-light: #8c7d62;
+  --color-wood-dark: #4c4337;
+  --color-piece-outline: #81796c;
+  --color-selection: #a19680;
+  --color-selection-fill: #a1968026;
+  --color-shadow: #09080688;
+  --color-floating-shadow: #09080666;
+  --color-overlay: #0e0c0acc;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+}
+
