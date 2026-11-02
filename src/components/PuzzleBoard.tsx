@@ -10,6 +10,8 @@ import { targetCountForGame } from '../constants';
 import type { SavedGame } from '../types';
 
 type Camera = { x: number; y: number; scale: number }
+type TouchPoint = { x: number; y: number }
+type Pinch = { distance: number; camera: Camera; center: TouchPoint }
 type Drag = {
   ids: number[]
   startX: number
@@ -17,8 +19,12 @@ type Drag = {
   positions: Piece[]
   camera: Camera
   pan: boolean
+  selecting: boolean
+  selectionBase: number[]
 }
+type SelectionBox = { x: number; y: number; width: number; height: number }
 type ContextMenu = { x: number; y: number; id: number }
+type ModifierMode = 'multi' | 'area' | null
 type PuzzleBoardProps = {
   game: SavedGame
   elapsed: number
@@ -96,11 +102,16 @@ export default function PuzzleBoard({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const drawRef = useRef<() => void>(() => {});
   const dragRef = useRef<Drag | null>(null);
+  const touchPointsRef = useRef(new Map<number, TouchPoint>());
+  const pinchRef = useRef<Pinch | null>(null);
   const piecesRef = useRef(game.pieces);
   const [size, setSize] = useState({ width: 1280, height: 800 });
   const [pieces, setPieces] = useState(game.pieces);
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, scale: 1 });
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
+  const [modifierMode, setModifierMode] = useState<ModifierMode>(null);
   const geometryVersion = game.geometryVersion ?? 3;
   const targetCount = targetCountForGame(
     game.count,
@@ -124,6 +135,24 @@ export default function PuzzleBoard({
   const referenceX = (worldWidth - referenceBounds.width) / 2;
   const referenceY = pieceAreaHeight + cellSize * 2;
   const worldHeight = referenceY + referenceBounds.height + margin * 0.25;
+
+  useEffect(() => {
+    const updateModifierMode = (event: KeyboardEvent) => {
+      if (event.shiftKey) setModifierMode('area');
+      else if (event.ctrlKey || event.metaKey) setModifierMode('multi');
+      else setModifierMode(null);
+    };
+    const resetModifierMode = () => setModifierMode(null);
+
+    window.addEventListener('keydown', updateModifierMode);
+    window.addEventListener('keyup', updateModifierMode);
+    window.addEventListener('blur', resetModifierMode);
+    return () => {
+      window.removeEventListener('keydown', updateModifierMode);
+      window.removeEventListener('keyup', updateModifierMode);
+      window.removeEventListener('blur', resetModifierMode);
+    };
+  }, []);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -251,13 +280,26 @@ export default function PuzzleBoard({
       );
       ctx.restore();
       drawPiecePath(ctx, piece.x, piece.y, cellSize, cellSize, edges[piece.id]);
-      ctx.strokeStyle = theme.getPropertyValue('--color-piece-outline').trim();
-      ctx.lineWidth = 0.9 / camera.scale;
+      ctx.strokeStyle = selectedIds.includes(piece.id)
+        ? theme.getPropertyValue('--color-selection').trim()
+        : theme.getPropertyValue('--color-piece-outline').trim();
+      ctx.lineWidth = (selectedIds.includes(piece.id) ? 2.2 : 0.9) / camera.scale;
       ctx.stroke();
     });
+    if (selectionBox) {
+      ctx.save();
+      ctx.fillStyle = theme.getPropertyValue('--color-selection-fill').trim();
+      ctx.fillRect(selectionBox.x, selectionBox.y, selectionBox.width, selectionBox.height);
+      ctx.strokeStyle = theme.getPropertyValue('--color-selection').trim();
+      ctx.lineWidth = 1 / camera.scale;
+      ctx.setLineDash([6 / camera.scale, 4 / camera.scale]);
+      ctx.strokeRect(selectionBox.x, selectionBox.y, selectionBox.width, selectionBox.height);
+      ctx.restore();
+    }
   }, [
     camera, cellSize, edges, margin, pieces, puzzleHeight, puzzleWidth,
     referenceBounds.height, referenceBounds.width, referenceX, referenceY,
+    selectedIds, selectionBox,
   ]);
   drawRef.current = draw;
 
@@ -284,23 +326,83 @@ export default function PuzzleBoard({
     setContextMenu(null);
 
     const { x, y } = point(event);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (event.pointerType === 'touch') {
+      touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (touchPointsRef.current.size >= 2) {
+        const [first, second] = [...touchPointsRef.current.values()];
+        const rect = canvas.getBoundingClientRect();
+        if (dragRef.current && !dragRef.current.pan && !dragRef.current.selecting) {
+          onUpdate(piecesRef.current);
+        }
+        pinchRef.current = {
+          distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+          camera,
+          center: {
+            x: (first.x + second.x) / 2 - rect.left,
+            y: (first.y + second.y) / 2 - rect.top,
+          },
+        };
+        dragRef.current = null;
+        setSelectionBox(null);
+        canvas.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        return;
+      }
+    }
+
     const worldX = (x - camera.x) / camera.scale;
     const worldY = (y - camera.y) / camera.scale;
+
     const hit = [...pieces].reverse().find((piece) => (
       worldX >= piece.x - cellSize * 0.24
       && worldX <= piece.x + cellSize * 1.24
       && worldY >= piece.y - cellSize * 0.24
       && worldY <= piece.y + cellSize * 1.24
     ));
-    const canvas = canvasRef.current;
-    if (!canvas) return;
 
-    if (!hit) {
+    if (event.shiftKey) {
+      setSelectionBox({
+        x: worldX, y: worldY, width: 0, height: 0,
+      });
       dragRef.current = {
-        ids: [], startX: x, startY: y, positions: [], camera, pan: true,
+        ids: [],
+        startX: x,
+        startY: y,
+        positions: [],
+        camera,
+        pan: false,
+        selecting: true,
+        selectionBase: selectedIds,
+      };
+    } else if ((event.ctrlKey || event.metaKey) && hit) {
+      setSelectedIds((current) => (
+        current.includes(hit.id)
+          ? current.filter((id) => id !== hit.id)
+          : [...current, hit.id]
+      ));
+      event.preventDefault();
+      return;
+    } else if (!hit) {
+      setSelectedIds([]);
+      setSelectionBox(null);
+      dragRef.current = {
+        ids: [],
+        startX: x,
+        startY: y,
+        positions: [],
+        camera,
+        pan: true,
+        selecting: false,
+        selectionBase: [],
       };
     } else {
-      const ids = [...connectedIds(hit.id, piecesRef.current, cellSize, cellSize)];
+      const roots = selectedIds.includes(hit.id) ? selectedIds : [hit.id];
+      const ids = [...new Set(roots.flatMap((id) => (
+        [...connectedIds(id, piecesRef.current, cellSize, cellSize)]
+      )))];
       const idSet = new Set(ids);
       const lifted = [
         ...piecesRef.current.filter((piece) => !idSet.has(piece.id)),
@@ -308,6 +410,7 @@ export default function PuzzleBoard({
       ];
       piecesRef.current = lifted;
       setPieces(lifted);
+      if (!selectedIds.includes(hit.id)) setSelectedIds([]);
       dragRef.current = {
         ids,
         startX: x,
@@ -315,6 +418,8 @@ export default function PuzzleBoard({
         positions: lifted.filter((piece) => idSet.has(piece.id)),
         camera,
         pan: false,
+        selecting: false,
+        selectionBase: [],
       };
     }
 
@@ -323,12 +428,57 @@ export default function PuzzleBoard({
   }
 
   function pointerMove(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType === 'touch' && touchPointsRef.current.has(event.pointerId)) {
+      touchPointsRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const pinch = pinchRef.current;
+      const points = [...touchPointsRef.current.values()].slice(0, 2);
+      if (pinch && points.length === 2) {
+        const [first, second] = points;
+        const rect = event.currentTarget.getBoundingClientRect();
+        const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+        const center = {
+          x: (first.x + second.x) / 2 - rect.left,
+          y: (first.y + second.y) / 2 - rect.top,
+        };
+        const scale = Math.max(0.25, Math.min(3, pinch.camera.scale * distance / pinch.distance));
+        setCamera({
+          scale,
+          x: center.x - ((pinch.center.x - pinch.camera.x) * scale) / pinch.camera.scale,
+          y: center.y - ((pinch.center.y - pinch.camera.y) * scale) / pinch.camera.scale,
+        });
+        return;
+      }
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
 
     const { x, y } = point(event);
     const dx = x - drag.startX;
     const dy = y - drag.startY;
+    if (drag.selecting) {
+      const startWorldX = (drag.startX - drag.camera.x) / drag.camera.scale;
+      const startWorldY = (drag.startY - drag.camera.y) / drag.camera.scale;
+      const worldX = (x - drag.camera.x) / drag.camera.scale;
+      const worldY = (y - drag.camera.y) / drag.camera.scale;
+      const selection = {
+        x: Math.min(startWorldX, worldX),
+        y: Math.min(startWorldY, worldY),
+        width: Math.abs(worldX - startWorldX),
+        height: Math.abs(worldY - startWorldY),
+      };
+      setSelectionBox(selection);
+      const enclosedIds = piecesRef.current
+        .filter((piece) => (
+          piece.x + cellSize * 1.66 >= selection.x
+          && piece.x - cellSize * 0.66 <= selection.x + selection.width
+          && piece.y + cellSize * 1.66 >= selection.y
+          && piece.y - cellSize * 0.66 <= selection.y + selection.height
+        ))
+        .map((piece) => piece.id);
+      setSelectedIds([...new Set([...drag.selectionBase, ...enclosedIds])]);
+      return;
+    }
     if (drag.pan) {
       setCamera({ ...drag.camera, x: drag.camera.x + dx, y: drag.camera.y + dy });
       return;
@@ -346,11 +496,41 @@ export default function PuzzleBoard({
     setPieces(next);
   }
 
-  function pointerUp() {
+  function pointerUp(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType === 'touch') {
+      touchPointsRef.current.delete(event.pointerId);
+      if (pinchRef.current) {
+        pinchRef.current = null;
+        dragRef.current = null;
+        const remaining = [...touchPointsRef.current.entries()][0];
+        if (remaining) {
+          const touchPoint = remaining[1];
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = touchPoint.x - rect.left;
+          const y = touchPoint.y - rect.top;
+          dragRef.current = {
+            ids: [],
+            startX: x,
+            startY: y,
+            positions: [],
+            camera,
+            pan: true,
+            selecting: false,
+            selectionBase: [],
+          };
+        }
+        return;
+      }
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
     dragRef.current = null;
     if (drag.pan) return;
+    if (drag.selecting) {
+      setSelectionBox(null);
+      return;
+    }
 
     const byId = new Map(piecesRef.current.map((piece) => [piece.id, piece]));
     const byPosition = new Map(piecesRef.current.map((piece) => [
@@ -459,8 +639,14 @@ export default function PuzzleBoard({
     >
       <canvas
         ref={canvasRef}
+        className={modifierMode ? `cursor-${modifierMode}` : undefined}
         tabIndex={0}
-        aria-label="Jigsaw workspace. Drag pieces to fit or drag empty space to pan."
+        title="Ctrl-click to select pieces. Shift-drag to select an area."
+        aria-label={[
+          'Puzzle canvas. Drag pieces to fit and empty space to pan.',
+          'Ctrl-click selects pieces; Shift-drag selects an area.',
+          'Drag a selected piece to move the selection.',
+        ].join(' ')}
         onPointerDown={pointerDown}
         onPointerMove={pointerMove}
         onPointerUp={pointerUp}
@@ -480,11 +666,17 @@ export default function PuzzleBoard({
           Separate puzzle group
         </button>
       )}
+      {selectedIds.length > 0 && (
+        <div className="selection-count" role="status" aria-live="polite" aria-atomic="true">
+          {selectedIds.length}
+          {' '}
+          {selectedIds.length === 1 ? 'piece' : 'pieces'}
+          {' selected'}
+        </div>
+      )}
       <div className="canvas-controls">
         <button aria-label="Go to home" onClick={onHome}><House size={18} /></button>
-        <div className="canvas-control-group">
-          <span className="canvas-timer">{formatTime(elapsed)}</span>
-          <span className="control-separator" />
+        <div className="canvas-control-group zoom-control-group">
           <div className="zoom-control">
             <button aria-label="Zoom out" onClick={() => zoomAt(camera.scale / 1.2)}><Minus size={16} /></button>
             <button className="zoom-value" aria-label="Fit to screen" onClick={fitCanvas}>
@@ -493,6 +685,9 @@ export default function PuzzleBoard({
             </button>
             <button aria-label="Zoom in" onClick={() => zoomAt(camera.scale * 1.2)}><Plus size={16} /></button>
           </div>
+        </div>
+        <div className="canvas-control-group canvas-timer-group">
+          <span className="canvas-timer">{formatTime(elapsed)}</span>
         </div>
       </div>
     </div>
